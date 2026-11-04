@@ -1,7 +1,31 @@
 # Equity derivatives lab: pricing and model validation in Python
 
-A small, tested toolkit that prices equity options several ways and **checks the methods
-against each other**, the way a model validation team would:
+![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![Tests](https://img.shields.io/badge/tests-11%20passing-brightgreen) ![Stack](https://img.shields.io/badge/stack-NumPy%20%7C%20SciPy%20%7C%20Matplotlib-informational)
+
+A tested Python toolkit that prices equity options with several independent methods
+(closed form, binomial tree, Monte Carlo, local volatility) and **checks them against each other**,
+the way a model validation team would. Every number in this README is reproducible with one command.
+
+## At a glance
+
+- **Pricing methods cross-checked:** the binomial tree and Monte Carlo prices both converge to the Black-Scholes price
+  (tree error -0.005 at 400 steps, Monte Carlo inside its confidence interval). Monte Carlo Greeks match the analytic
+  Greeks (max delta gap 0.002).
+- **Correlation repair:** a non-positive-semidefinite correlation matrix is detected and fixed with Higham's
+  nearest-correlation algorithm, then used to price a 3-asset basket option.
+- **Dupire local volatility:** local vol is built from an implied volatility surface, and the vanillas are repriced by
+  Monte Carlo to within about 1.3 standard errors at every strike. Points where the surface allows arbitrage are
+  detected and reported, not hidden.
+- **Engineering:** 11 `pytest` tests (put-call parity, no-arbitrage bounds, convergence, Greeks), fixed seeds,
+  vectorised NumPy, and a single script that regenerates every figure and number.
+
+**Skills shown:** stochastic calculus applied to pricing (GBM, Dupire), numerical methods (trees, Monte Carlo,
+variance reduction, finite differences, root finding), numerical linear algebra (eigendecomposition, alternating
+projections), and model validation (benchmarking methods against each other, stating limitations).
+
+![Dupire local vol vs implied vol](figures/local_vol.png)
+
+## What's inside
 
 | Module | What it does |
 |---|---|
@@ -11,6 +35,18 @@ against each other**, the way a model validation team would:
 | `pricing/correlation.py` | Admissibility test and **nearest correlation matrix** (Higham 2002, alternating projections with Dykstra's correction) |
 | `pricing/basket.py` | Basket option on correlated underlyings |
 | `pricing/local_vol.py` | **Dupire local volatility** from an implied volatility surface, Monte Carlo under local vol, explicit detection of arbitrageable regions |
+| `tests/test_pricing.py` | 11 tests: parity, bounds, convergence, Greeks, correlation, local vol repricing |
+| `examples/report.py` | Regenerates every figure and number below |
+
+## Quick start
+
+```bash
+git clone https://github.com/ch-moh/equity-derivatives-lab.git
+cd equity-derivatives-lab
+pip install -r requirements.txt
+pytest -q                     # 11 tests
+python -m examples.report     # figures and numbers
+```
 
 ## Results (`python -m examples.report`)
 
@@ -65,14 +101,6 @@ often** it happened (1.3 × 10⁻⁶ of path-steps here) instead of hiding the r
 | ![CRR convergence](figures/crr_convergence.png) | ![MC convergence](figures/mc_convergence.png) |
 | ![Greeks](figures/greeks.png) | ![Local vol](figures/local_vol.png) |
 
-## Run
-
-```bash
-pip install -r requirements.txt
-pytest -q                     # 11 tests
-python -m examples.report     # figures and numbers
-```
-
 ## Limitations and next steps
 - The implied surface is a smooth toy smile, not calibrated to market quotes. Next: fit an SVI surface to
   real option prices and check it for butterfly and calendar arbitrage before computing local vol.
@@ -83,3 +111,10 @@ python -m examples.report     # figures and numbers
 - J. Gatheral, *The Volatility Surface*, Wiley, 2006 (Dupire formula in total implied variance).
 - N. J. Higham, "Computing the nearest correlation matrix", *IMA Journal of Numerical Analysis*, 2002.
 - J. C. Hull, *Options, Futures, and Other Derivatives*.
+
+## Author
+
+**Mohamed-Walid Chaabane**, engineering student at IMT Atlantique (applied mathematics, market finance),
+looking for a quantitative research internship in Paris from March 2027.
+
+[LinkedIn](https://www.linkedin.com/in/mohamed-walid-chaabane/) · [GitHub](https://github.com/ch-moh) · mohamed.chaabane@imt-atlantique.net
